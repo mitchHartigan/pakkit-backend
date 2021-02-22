@@ -3,15 +3,21 @@
 // eslint-disable-next-line import/no-unresolved
 const express = require("express");
 const login = require("./routes/login");
+const bodyParser = require("body-parser");
 
 const app = express();
+app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use("/login", login);
 
-// Error handler
-app.use((err, req, res) => {
-  console.error(err);
-  res.status(500).send("Internal Serverless Error");
+app.get("/", function (req, res) {
+  res.send(" /GET 200 OK");
+  res.end();
 });
 
+app.listen(8080, () => {
+  console.log("server running successfully");
+});
+
+// Error handler
 module.exports = app;
