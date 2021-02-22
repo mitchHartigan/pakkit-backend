@@ -1,0 +1,7 @@
+org: modjeska
+app: pakkit-backend
+component: express
+name: express-starter
+
+inputs:
+  src: ./
