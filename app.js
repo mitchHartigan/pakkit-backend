@@ -1,19 +1,17 @@
-'use strict';
+"use strict";
 
 // eslint-disable-next-line import/no-unresolved
-const express = require('express');
+const express = require("express");
+const login = require("./routes/login");
 
 const app = express();
 
-// Routes
-app.get('/*', (req, res) => {
-  res.send(`Request received: ${req.method} - ${req.path}`);
-});
+app.use("/login", login);
 
 // Error handler
 app.use((err, req, res) => {
   console.error(err);
-  res.status(500).send('Internal Serverless Error');
+  res.status(500).send("Internal Serverless Error");
 });
 
 module.exports = app;
