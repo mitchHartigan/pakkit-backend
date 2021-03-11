@@ -1,48 +1,43 @@
 const express = require("express");
 const router = express.Router();
 const bodyParser = require("body-parser");
+const bcrypt = require("bcrypt");
 
 // Set up connection to AWS DynamoDB instance.
 const AWS = require("aws-sdk");
-require("dotenv").config();
-
-const config = {
-  aws_remote_config: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
-  region: "us-east-2",
-};
-
-AWS.config.update(config);
 
 // Configure router middleware.
 router.use(bodyParser.urlencoded({ extended: true }));
-router.use(bodyParser.json());
-
-// Define GET and POST actions
-router.get("/", (req, res) => {
-  AWS.config.update(config);
-  const docClient = new AWS.DynamoDB.DocumentClient();
-
-  const params = {
-    TableName: "Users",
-  };
-
-  docClient.scan(params, (err, data) => {
-    if (err) {
-      console.log(err);
-      res.json("could not establish connection to database");
-    } else {
-      const { Items } = data;
-
-      res.json({ items: Items });
-    }
-  });
-});
 
 router.post("/", (req, res) => {
-  res.json("POST request recieved.");
+  const docClient = new AWS.DynamoDB.DocumentClient();
+  const { email, password } = req.body;
+
+  const loginParams = {
+    TableName: "Users",
+    Key: {
+      email: email,
+    },
+  };
+
+  docClient.get(loginParams, (data) => {
+    // If returned data obj is empty, email did not match any records in the db.
+    if (Object.keys(data).length === 0) {
+      console.log("Email not found in database");
+      res.sendStatus(404);
+    } else {
+      bcrypt.compare(password, data.Item.password, (err, same) => {
+        if (same) {
+          console.log("user authenticated.");
+          res.sendStatus(200);
+          // give the user an auth token.
+        } else {
+          console.log("incorrect password");
+          res.sendStatus(401);
+        }
+      });
+    }
+  });
 });
 
 module.exports = router;
