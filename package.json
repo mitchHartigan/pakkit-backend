@@ -9,6 +9,7 @@
     "body-parser": "^1.19.0",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
     "short-uuid": "^4.1.0",
     "uuid": "^8.3.2"
   },

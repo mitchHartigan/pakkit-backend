@@ -2,6 +2,9 @@ const express = require("express");
 const router = express.Router();
 const bodyParser = require("body-parser");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const dotenv = require("dotenv");
+dotenv.config();
 
 // Set up connection to AWS DynamoDB instance.
 const AWS = require("aws-sdk");
@@ -20,7 +23,7 @@ router.post("/", (req, res) => {
     },
   };
 
-  docClient.get(loginParams, (data) => {
+  docClient.get(loginParams, (err, data) => {
     // If returned data obj is empty, email did not match any records in the db.
     if (Object.keys(data).length === 0) {
       console.log("Email not found in database");
@@ -29,8 +32,9 @@ router.post("/", (req, res) => {
       bcrypt.compare(password, data.Item.password, (err, same) => {
         if (same) {
           console.log("user authenticated.");
-          res.sendStatus(200);
-          // give the user an auth token.
+          const payload = { email: email };
+          const token = jwt.sign(payload, process.env.SECRET_OR_KEY);
+          res.status(200).json(token);
         } else {
           console.log("incorrect password");
           res.sendStatus(401);
