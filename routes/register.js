@@ -12,26 +12,28 @@ router.use(bodyParser.json());
 
 // Define POST actions
 router.post("/", (req, res) => {
-  const { email, username, password } = req.body;
+  const { email, name, password } = req.body;
   const userID = short.generate();
 
-  const docClient = new AWS.DynamoDB.DocumentClient();
+  _registerUser = (usersParams, packsParams) => {
+    const docClient = new AWS.DynamoDB.DocumentClient();
 
-  _registerUser = (params) => {
-    docClient.put(params, (err, data) => {
-      if (err) {
-        console.log("unable to add item. Error: ", err);
-        res.sendStatus(500);
-      }
-      console.log("added item to Users:", data);
-      const payload = { email: email };
-      const token = jwt.sign(payload, process.env.SECRET_OR_KEY);
-
-      res.status(200).json(token);
+    docClient.put(usersParams, (err, data) => {
+      if (err) throw err;
     });
+
+    docClient.put(packsParams, (err, data) => {
+      if (err) throw err;
+    });
+
+    console.log("user added successfully");
+
+    const payload = { id: usersParams.id };
+    const token = jwt.sign(payload, process.env.SECRET_OR_KEY);
+    res.json(token);
   };
 
-  if (username && email && password) {
+  if (name && email && password) {
     bcrypt.hash(password, 10, (err, hash) => {
       if (err) throw err;
 
@@ -40,15 +42,22 @@ router.post("/", (req, res) => {
         Item: {
           id: userID,
           email: email,
-          username: username,
+          name: name,
           password: hash,
+        },
+      };
+
+      const packsParams = {
+        TableName: "Packs",
+        Item: {
+          id: userID,
           pack: {},
         },
       };
-      _registerUser(usersParams);
+
+      _registerUser(usersParams, packsParams);
     });
   }
-
   // do this ^ and then give the user an auth token.
 });
 

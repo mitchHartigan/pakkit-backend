@@ -32,7 +32,7 @@ router.post("/", (req, res) => {
       bcrypt.compare(password, data.Item.password, (err, same) => {
         if (same) {
           console.log("user authenticated.");
-          const payload = { email: email };
+          const payload = { id: data.Item.id };
           const token = jwt.sign(payload, process.env.SECRET_OR_KEY);
           res.status(200).json(token);
         } else {

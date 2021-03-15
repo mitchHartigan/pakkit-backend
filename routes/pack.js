@@ -49,8 +49,17 @@ router.post("/", (req, res) => {
   }
 });
 
-router.post("/:id", (req, res) => {
-  const { id } = req.body;
+router.get("/:id", (req, res) => {
+  const docClient = new AWS.DynamoDB.DocumentClient();
+
+  const id = req.params.id;
+
+  const params = {
+    TableName: "Users",
+    Key: {
+      id: id,
+    },
+  };
 });
 
 module.exports = router;
