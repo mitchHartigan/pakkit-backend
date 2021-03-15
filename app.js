@@ -4,6 +4,7 @@
 const express = require("express");
 const login = require("./routes/login");
 const register = require("./routes/register");
+const pack = require("./routes/pack");
 const bodyParser = require("body-parser");
 
 // Set up connection to AWS DynamoDB
@@ -17,6 +18,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use("/login", login);
 app.use("/register", register);
+app.use("/pack", pack);
 
 app.get("/", function (req, res) {
   res.send(" /GET 200 OK");

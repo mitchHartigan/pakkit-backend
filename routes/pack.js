@@ -1,33 +1,56 @@
 const express = require("express");
 const router = express.Router();
 const bodyParser = require("body-parser");
+const jwt = require("jsonwebtoken");
 
 const AWS = require("aws-sdk");
 
 router.use(bodyParser.urlencoded({ extended: true }));
-router.use(bodyParser.json);
+
+_getPackData = (params) => {
+  docClient.get(params, (err, data) => {
+    if (err) throw err;
+  });
+};
+
+_updatePackData = (params) => {};
 
 // Updates the pack object in the DB.
 router.post("/", (req, res) => {
   const docClient = new AWS.DynamoDB.DocumentClient();
 
-  const params = {
-    TableName: "Users",
-  };
+  const { email, token } = req.body;
 
-  docClient.scan(params, (err, data) => {
-    if (err) {
-      console.log(err);
-      res.json("could not establish connection to database");
-    } else {
-      const { Items } = data;
+  if (token) {
+    jwt.verify(token, process.env.SECRET_OR_KEY, (err, valid) => {
+      if (err) throw err;
 
-      res.json({ items: Items });
-    }
-  });
+      if (valid) {
+        const params = {
+          TableName: "Users",
+          Key: {
+            email: email,
+          },
+        };
+
+        docClient.get(params, (err, data) => {
+          if (err) {
+            console.log(err);
+            res.status(500).json("could not establish connection to DynamoDB");
+          } else {
+            const { pack } = data.Item;
+            res.status(200).json(pack);
+          }
+        });
+      }
+    });
+  } else {
+    res.sendStatus(401);
+  }
 });
 
-// Reads out the pack object from the DB.
-router.post("/readonly", (req, res) => {});
+router.post("/:id", (req, res) => {
+  const { id } = req.body;
+});
 
-// module.exports = router;
+module.exports = router;
