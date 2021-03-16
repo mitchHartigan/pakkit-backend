@@ -19,28 +19,47 @@ _updatePackData = (params) => {};
 router.post("/", (req, res) => {
   const docClient = new AWS.DynamoDB.DocumentClient();
 
-  const { email, token } = req.body;
+  const { email, token, packData } = req.body;
 
+  // Verify the token is valid, then look up the user in the Users table.
+  // Go over to the Packs table and update the pack value using the user id.
   if (token) {
     jwt.verify(token, process.env.SECRET_OR_KEY, (err, valid) => {
       if (err) throw err;
 
       if (valid) {
-        const params = {
+        const usersParams = {
           TableName: "Users",
           Key: {
             email: email,
           },
         };
 
-        docClient.get(params, (err, data) => {
-          if (err) {
-            console.log(err);
-            res.status(500).json("could not establish connection to DynamoDB");
-          } else {
-            const { pack } = data.Item;
-            res.status(200).json(pack);
-          }
+        docClient.get(usersParams, (err, data) => {
+          if (err) throw err;
+
+          // UpdateExpression needs to use a new variable? Idk exactly
+          // what the set pack=:p does tbh, just following the AWS docs.
+          const packsParams = {
+            TableName: "Packs",
+            Key: {
+              id: data.Item.id,
+            },
+            UpdateExpression: "set pack=:p",
+            ExpressionAttributeValues: {
+              ":p": packData,
+            },
+            ReturnValues: "UPDATED_NEW",
+          };
+
+          // update the pack data.
+          docClient.update(packsParams, (err, data) => {
+            if (err) throw err;
+
+            if (data) {
+              res.sendStatus(200);
+            }
+          });
         });
       }
     });
@@ -55,11 +74,23 @@ router.get("/:id", (req, res) => {
   const id = req.params.id;
 
   const params = {
-    TableName: "Users",
+    TableName: "Packs",
     Key: {
       id: id,
     },
   };
+
+  docClient.get(params, (err, data) => {
+    if (err) {
+      console.log("could not find requested pack");
+      res.sendStatus(404);
+    }
+
+    if (data) {
+      const pack = data.Item.pack;
+      res.json(pack);
+    }
+  });
 });
 
 module.exports = router;

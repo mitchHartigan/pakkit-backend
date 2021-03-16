@@ -26,7 +26,7 @@ router.post("/", (req, res) => {
       if (err) throw err;
     });
 
-    console.log("user added successfully");
+    console.log("New user added successfully to database");
 
     const payload = { id: usersParams.id };
     const token = jwt.sign(payload, process.env.SECRET_OR_KEY);
