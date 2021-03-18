@@ -11,6 +11,7 @@ const AWS = require("aws-sdk");
 
 // Configure router middleware.
 router.use(bodyParser.urlencoded({ extended: true }));
+router.use(bodyParser.json());
 
 router.post("/", (req, res) => {
   const docClient = new AWS.DynamoDB.DocumentClient();
