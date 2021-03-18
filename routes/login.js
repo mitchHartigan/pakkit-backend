@@ -27,17 +27,17 @@ router.post("/", (req, res) => {
   docClient.get(loginParams, (err, data) => {
     // If returned data obj is empty, email did not match any records in the db.
     if (Object.keys(data).length === 0) {
-      console.log("Email not found in database");
-      res.status(404).json(`Email not found in database.`);
+      res
+        .status(404)
+        .json({ token: "", message: "Email not found in database." });
     } else {
       bcrypt.compare(password, data.Item.password, (err, same) => {
         if (same) {
-          console.log("user authenticated.");
           const payload = { id: data.Item.id };
           const token = jwt.sign(payload, process.env.SECRET_OR_KEY);
-          res.status(200).json(token);
+          res.status(200).json({ token: token, message: "" });
         } else {
-          res.status(401).json("Password is incorrect");
+          res.status(401).json({ token: "", message: "Password is incorrect" });
         }
       });
     }
