@@ -6,6 +6,7 @@ const login = require("./routes/login");
 const register = require("./routes/register");
 const pack = require("./routes/pack");
 const bodyParser = require("body-parser");
+const cors = require('cors');
 
 // Set up connection to AWS DynamoDB
 const AWS = require("aws-sdk");
@@ -13,6 +14,8 @@ const config = require("./_config");
 AWS.config.update(config);
 
 const app = express();
+
+app.use(cors());
 
 app.use(bodyParser.urlencoded({ extended: true }));
 
