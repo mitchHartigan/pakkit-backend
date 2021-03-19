@@ -17,31 +17,39 @@ router.post("/", (req, res) => {
   const docClient = new AWS.DynamoDB.DocumentClient();
   const { email, password } = req.body;
 
-  const loginParams = {
-    TableName: "Users",
-    Key: {
-      email: email,
-    },
-  };
+  if (email && password) {
+    const loginParams = {
+      TableName: "Users",
+      Key: {
+        email: email,
+      },
+    };
 
-  docClient.get(loginParams, (err, data) => {
-    // If returned data obj is empty, email did not match any records in the db.
-    if (Object.keys(data).length === 0) {
-      res
-        .status(404)
-        .json({ token: "", message: "Email not found in database." });
-    } else {
-      bcrypt.compare(password, data.Item.password, (err, same) => {
-        if (same) {
-          const payload = { id: data.Item.id };
-          const token = jwt.sign(payload, process.env.SECRET_OR_KEY);
-          res.status(200).json({ token: token, message: "" });
-        } else {
-          res.status(401).json({ token: "", message: "Password is incorrect" });
-        }
-      });
-    }
-  });
+    docClient.get(loginParams, (err, data) => {
+      // If returned data obj is empty, email did not match any records in the db.
+      if (Object.keys(data).length === 0) {
+        res
+          .status(404)
+          .json({ token: "", message: "Email not found in database." });
+      } else {
+        bcrypt.compare(password, data.Item.password, (err, same) => {
+          if (same) {
+            const payload = { id: data.Item.id };
+            const token = jwt.sign(payload, process.env.SECRET_OR_KEY);
+            res.status(200).json({ token: token, message: "" });
+          } else {
+            res
+              .status(401)
+              .json({ token: "", message: "Password is incorrect." });
+          }
+        });
+      }
+    });
+  } else {
+    res
+      .status(400)
+      .json({ token: "", message: "Email or password are empty." });
+  }
 });
 
 module.exports = router;
