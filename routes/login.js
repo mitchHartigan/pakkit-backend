@@ -24,7 +24,7 @@ router.post("/", (req, res) => {
         email: email,
       },
     };
-
+    // Check the database to see if the user email is in there.
     docClient.get(loginParams, (err, data) => {
       // If returned data obj is empty, email did not match any records in the db.
       if (Object.keys(data).length === 0) {
@@ -32,6 +32,7 @@ router.post("/", (req, res) => {
           .status(404)
           .json({ token: "", message: "Email not found in database." });
       } else {
+        // hash the input password, and check it with the one returned from the db.
         bcrypt.compare(password, data.Item.password, (err, same) => {
           if (same) {
             const payload = { id: data.Item.id };

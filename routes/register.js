@@ -10,30 +10,36 @@ const AWS = require("aws-sdk");
 router.use(bodyParser.urlencoded({ extended: true }));
 router.use(bodyParser.json());
 
+_registerUser = (usersParams, packsParams, res) => {
+  const docClient = new AWS.DynamoDB.DocumentClient();
+
+  // Put user in database.
+  docClient.put(usersParams, (err, data) => {
+    if (err) throw err;
+  });
+
+  // Put empty pack in database.
+  docClient.put(packsParams, (err, data) => {
+    if (err) throw err;
+  });
+
+  // Log out that a new user has been added.
+  console.log(`User ${usersParams.email} added successfully to database.`);
+
+  // Sign the jwt token with the new short uuid.
+  const payload = { id: usersParams.id };
+  const token = jwt.sign(payload, process.env.SECRET_OR_KEY);
+
+  // Send the token back with no error message.
+  res.status(200).json({ token: token, message: "" });
+};
+
 // Define POST actions
 router.post("/", (req, res) => {
-  const { email, name, password } = req.body;
+  const { email, password } = req.body;
   const userID = short.generate();
 
-  _registerUser = (usersParams, packsParams) => {
-    const docClient = new AWS.DynamoDB.DocumentClient();
-
-    docClient.put(usersParams, (err, data) => {
-      if (err) throw err;
-    });
-
-    docClient.put(packsParams, (err, data) => {
-      if (err) throw err;
-    });
-
-    console.log("New user added successfully to database");
-
-    const payload = { id: usersParams.id };
-    const token = jwt.sign(payload, process.env.SECRET_OR_KEY);
-    res.json(token);
-  };
-
-  if (name && email && password) {
+  if (email && password) {
     bcrypt.hash(password, 10, (err, hash) => {
       if (err) throw err;
 
@@ -42,7 +48,6 @@ router.post("/", (req, res) => {
         Item: {
           id: userID,
           email: email,
-          name: name,
           password: hash,
         },
       };
@@ -55,10 +60,9 @@ router.post("/", (req, res) => {
         },
       };
 
-      _registerUser(usersParams, packsParams);
+      _registerUser(usersParams, packsParams, res);
     });
   }
-  // do this ^ and then give the user an auth token.
 });
 
 module.exports = router;
