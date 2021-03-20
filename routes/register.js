@@ -27,7 +27,7 @@ _registerUser = (usersParams, packsParams, res) => {
   console.log(`User ${usersParams.email} added successfully to database.`);
 
   // Sign the jwt token with the new short uuid.
-  const payload = { id: usersParams.id };
+  const payload = { id: usersParams.id, email: usersParams.email };
   const token = jwt.sign(payload, process.env.SECRET_OR_KEY);
 
   // Send the token back with no error message.

@@ -35,7 +35,7 @@ router.post("/", (req, res) => {
         // hash the input password, and check it with the one returned from the db.
         bcrypt.compare(password, data.Item.password, (err, same) => {
           if (same) {
-            const payload = { id: data.Item.id };
+            const payload = { id: data.Item.id, email: email };
             const token = jwt.sign(payload, process.env.SECRET_OR_KEY);
             res.status(200).json({ token: token, message: "" });
           } else {

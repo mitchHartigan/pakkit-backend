@@ -19,15 +19,16 @@ _updatePackData = (params) => {};
 router.post("/", (req, res) => {
   const docClient = new AWS.DynamoDB.DocumentClient();
 
-  const { email, token, packData } = req.body;
+  const { token, pack } = req.body;
 
   // Verify the token is valid, then look up the user in the Users table.
   // Go over to the Packs table and update the pack value using the user id.
   if (token) {
-    jwt.verify(token, process.env.SECRET_OR_KEY, (err, valid) => {
+    jwt.verify(token, process.env.SECRET_OR_KEY, (err, payload) => {
       if (err) throw err;
+      const { id, email } = payload;
 
-      if (valid) {
+      if (id && email) {
         const usersParams = {
           TableName: "Users",
           Key: {
@@ -47,7 +48,7 @@ router.post("/", (req, res) => {
             },
             UpdateExpression: "set pack=:p",
             ExpressionAttributeValues: {
-              ":p": packData,
+              ":p": pack,
             },
             ReturnValues: "UPDATED_NEW",
           };
@@ -70,7 +71,6 @@ router.post("/", (req, res) => {
 
 router.get("/:id", (req, res) => {
   const docClient = new AWS.DynamoDB.DocumentClient();
-
   const id = req.params.id;
 
   const params = {
@@ -88,7 +88,7 @@ router.get("/:id", (req, res) => {
 
     if (data) {
       const pack = data.Item.pack;
-      res.json(pack);
+      res.status(200).json(pack);
     }
   });
 });
