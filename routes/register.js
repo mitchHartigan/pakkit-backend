@@ -12,6 +12,7 @@ router.use(bodyParser.json());
 
 _registerUser = (usersParams, packsParams, res) => {
   const docClient = new AWS.DynamoDB.DocumentClient();
+  const { email, id } = usersParams.Item;
 
   // Put user in database.
   docClient.put(usersParams, (err, data) => {
@@ -24,10 +25,10 @@ _registerUser = (usersParams, packsParams, res) => {
   });
 
   // Log out that a new user has been added.
-  console.log(`User ${usersParams.email} added successfully to database.`);
+  console.log(`User ${email} added successfully to database.`);
 
   // Sign the jwt token with the new short uuid.
-  const payload = { id: usersParams.id, email: usersParams.email };
+  const payload = { id: id, email: email };
   const token = jwt.sign(payload, process.env.SECRET_OR_KEY);
 
   // Send the token back with no error message.

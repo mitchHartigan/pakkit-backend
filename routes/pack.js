@@ -17,6 +17,7 @@ _updatePackData = (params) => {};
 
 // Updates the pack object in the DB.
 router.post("/", (req, res) => {
+  console.log('attempting to post pack data to DB');
   const docClient = new AWS.DynamoDB.DocumentClient();
 
   const { token, pack } = req.body;
