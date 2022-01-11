@@ -28,6 +28,7 @@ app.get("/", function (req, res) {
   res.end();
 });
 
+app.use(express.static("pdf"));
 // Local development only.
 app.listen(8080, () => {
   console.log("server running successfully");
