@@ -17,7 +17,7 @@ _updatePackData = (params) => {};
 
 // Updates the pack object in the DB.
 router.post("/", (req, res) => {
-  console.log('attempting to post pack data to DB');
+  console.log("attempting to post pack data to DB");
   const docClient = new AWS.DynamoDB.DocumentClient();
 
   const { token, pack } = req.body;
@@ -26,7 +26,10 @@ router.post("/", (req, res) => {
   // Go over to the Packs table and update the pack value using the user id.
   if (token) {
     jwt.verify(token, process.env.SECRET_OR_KEY, (err, payload) => {
-      if (err) throw err;
+      if (err) {
+        console.log("Invalid token");
+        res.sendStatus(403);
+      }
       const { id, email } = payload;
 
       if (id && email) {
